@@ -1,5 +1,11 @@
 import originJSONP from 'jsonp';
 
+/**
+ * jsonp请求封装
+ * @param {*string} url 请求原始网址
+ * @param {*object} data 所带的参数，写成对象样式
+ * @param {*object} option 
+ */
 export default function jsonp(url, data, option) {
     url += (url.indexOf('?') < 0 ? '?' : '&') + parma(data)
     return new Promise((resolve, reject) => {
@@ -16,11 +22,12 @@ export default function jsonp(url, data, option) {
 }
 
 function parma(data) {
-    let url = ''
+    let query = ''
+    // 拼接query对象
     for (let k in data) {
         let value = data[k] !== undefined ? data[k] : ''
-        url += `&${k}=${encodeURIComponent(value)}`
+        query += `&${k}=${encodeURIComponent(value)}`
     }
     // 删去最前面的&，因为第一个的位置是?
-    return url ? url.substring(1) : ''
+    return query ? query.substring(1) : ''
 }

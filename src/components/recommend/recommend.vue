@@ -1,7 +1,7 @@
 <template>
   <div class="recommend">
     <div class="recommend-content">
-      <!-- 注意需要保证加载了图片，slider才不出错 -->
+      <!-- 注意需要保证加载了图片，slider组件的函数才不出错 -->
       <div class="slider-wrapper" v-if="recommends.length">
         <Slider>
           <div v-for="(item, index) in recommends" :key="`ad${index+1}`">
