@@ -11,6 +11,8 @@ export default function jsonp(url, data, option) {
     return new Promise((resolve, reject) => {
         // 原始jsonp的API，第三个是一个callback
         // 如果err是none的话表示成功
+        // 这个url是需要带参数的，与axios不同，所以这里在前面进行了字符串拼接
+        // url参考：https://www.baidu.com?a=123&b=456&c=789
         originJSONP(url, option, (err, data) => {
             if (!err) {
                 resolve(data)

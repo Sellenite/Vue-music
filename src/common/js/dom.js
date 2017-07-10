@@ -1,7 +1,7 @@
 function hasClass(el, className) {
     // 以classname开头或者空白字符在它前面
     // 以classname结束或者空白字符在它后面
-    let reg = new RegExp('(^|\\s)' + className + `(\\s|$)`)
+    let reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
     return reg.test(el.className)
 }
 
@@ -32,9 +32,52 @@ function toggleClass(el, className) {
     }
 }
 
+function toggleData(el, name, val) {
+    const prefix = 'data-'
+    name = prefix + name
+    if (val) {
+        return el.setAttribute(name, val)
+    } else {
+        return el.getAttribute(name)
+    }
+}
+
+// 低配autoprefixer，用.style[]访问
+function prefixStyle(style) {
+    // 浏览器检测
+    let elementStyle = document.createElement('div').style
+    let vendor = (() => {
+        let transformNames = {
+            webkit: 'webkitTransform',
+            moz: 'mozTransform',
+            o: 'oTransform',
+            ms: 'msTransform',
+            standard: 'transform'
+        }
+        for (let key in transformNames) {
+            if (elementStyle[transformNames[key]] !== undefined) {
+                return key
+            } else {
+                return false
+            }
+        }
+    })()
+    if (vendor === false) {
+        return
+    }
+    if (vendor === 'standard') {
+        return style
+    }
+
+    let prefix = vendor + style.charAt(0).toUpperCase() + style.substr(1)
+    return prefix
+}
+
 export default {
     hasClass,
     addClass,
     removeClass,
-    toggleClass
+    toggleClass,
+    toggleData,
+    prefixStyle
 }

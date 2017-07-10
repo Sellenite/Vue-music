@@ -1,38 +1,55 @@
 <template>
   <div class="recommend">
-    <div class="recommend-content">
-      <!-- 注意需要保证加载了图片，slider组件的函数才不出错 -->
-      <div class="slider-wrapper" v-if="recommends.length">
-        <Slider>
-          <div v-for="(item, index) in recommends" :key="`ad${index+1}`">
-            <a :href="item.linkUrl">
-              <img :src="item.picUrl" alt="">
-            </a>
-          </div>
-        </Slider>
+    <Scroll class="recommend-content" :data="discList" ref="scroll">
+      <div>
+        <!-- 注意需要保证加载了图片，slider组件的函数才不出错 -->
+        <div class="slider-wrapper" v-if="recommends.length">
+          <Slider>
+            <div v-for="(item, index) in recommends" :key="`ad${index+1}`">
+              <a :href="item.linkUrl">
+                <img :src="item.picUrl" alt="" @load="loadImage" class="needsclick">
+              </a>
+            </div>
+          </Slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li v-for="item in discList" class="item">
+              <div class="icon">
+                <img v-lazy="item.imgurl" alt="" width="60" height="60">
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="recommend-list">
-        <h1 class="list-title">热门歌单推荐</h1>
-        <ul>
-  
-        </ul>
+      <div class="loading-container" v-show="!discList.length">
+        <Loading></Loading>
       </div>
-    </div>
+    </Scroll>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-import { getRecommend } from 'api/recommend'
+import { getRecommend, getDiscList } from 'api/recommend'
 import { ERR_OK } from 'api/config'
 import Slider from 'base/slider/slider'
+import Scroll from 'base/scroll/scroll'
+import Loading from 'base/loading/loading'
 
 export default {
   created() {
     this._getRecommend()
+    this._getDiscList()
   },
   data() {
     return {
-      recommends: []
+      recommends: [],
+      discList: []
     }
   },
   methods: {
@@ -42,10 +59,27 @@ export default {
           this.recommends = res.data.slider
         }
       })
+    },
+    _getDiscList() {
+      getDiscList().then((res) => {
+        if (res.code === ERR_OK) {
+          this.discList = res.data.list
+        }
+      })
+    },
+    // 优化，当slider加载了一张图片撑开高度后，刷新整个页面的scroll
+    // 防止高度计算不准确
+    loadImage() {
+      if (!this.checkLoaded) {
+        this.$refs.scroll.refresh()
+        this.checkLoaded = true
+      }
     }
   },
   components: {
-    Slider
+    Slider,
+    Scroll,
+    Loading
   }
 }
 

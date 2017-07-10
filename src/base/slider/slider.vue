@@ -120,7 +120,6 @@ export default {
       if (this.loop) {
         pageIndex += 1
       }
-      console.log(pageIndex)
       this.timer = setTimeout(() => {
         this.slider.goToPage(pageIndex, 0, 400)
       }, this.interval)
@@ -138,6 +137,9 @@ export default {
         this._play()
       }
     }
+  },
+  destroyed() {
+    clearTimeout(this.timer)
   }
 }
 </script>
