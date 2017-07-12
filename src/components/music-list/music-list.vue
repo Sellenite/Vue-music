@@ -6,7 +6,7 @@
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper">
-        <div class="play" v-show="songs.length && payButton">
+        <div class="play" v-show="songs.length && playButton" @click="randomAll">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -68,7 +68,7 @@ export default {
   data() {
     return {
       scrollY: 0,
-      payButton: true
+      playButton: true
     }
   },
   methods: {
@@ -85,8 +85,14 @@ export default {
         index
       })
     },
+    randomAll() {
+      this.randomPlay({
+        list: this.songs
+      })
+    },
     ...mapActions([
-      'selectPlay'
+      'selectPlay',
+      'randomPlay'
     ])
   },
   watch: {
@@ -114,10 +120,10 @@ export default {
       // 到达顶部时
       if (newY < this.minTranslateY) {
         zIndex = 10
-        this.payButton = false
+        this.playButton = false
         this.$refs.bgImage.style.paddingTop = `${RESERVED_HEIGHT}px`
       } else {
-        this.payButton = true
+        this.playButton = true
         this.$refs.bgImage.style.paddingTop = '70%'
       }
       this.$refs.bgImage.style.zIndex = zIndex
