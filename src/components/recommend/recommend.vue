@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" ref="recommend">
     <Scroll class="recommend-content" :data="discList" ref="scroll">
       <div>
         <!-- 注意需要保证加载了图片，slider组件的函数才不出错 -->
@@ -15,7 +15,7 @@
         <div class="recommend-list">
           <h1 class="list-title">热门歌单推荐</h1>
           <ul>
-            <li v-for="item in discList" class="item">
+            <li v-for="item in discList" class="item" @click="selectItem(item)">
               <div class="icon">
                 <img v-lazy="item.imgurl" alt="" width="60" height="60">
               </div>
@@ -31,6 +31,7 @@
         <Loading></Loading>
       </div>
     </Scroll>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -40,8 +41,13 @@ import { ERR_OK } from 'api/config'
 import Slider from 'base/slider/slider'
 import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
+import { playListMixin } from 'common/js/mixin'
+import { mapMutations } from 'vuex'
 
 export default {
+  mixins: [
+    playListMixin
+  ],
   created() {
     this._getRecommend()
     this._getDiscList()
@@ -53,6 +59,22 @@ export default {
     }
   },
   methods: {
+    ...mapMutations({
+      setDisc: 'SET_DISC'
+    }),
+    // mixin方案
+    handlePlayList(playList) {
+      // 从mixin里传过来的watch的newVal值
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.recommend.style.bottom = bottom
+      this.$refs.scroll.refresh()
+    },
+    selectItem(item) {
+      this.$router.push({
+        path: `/recommend/${item.dissid}`
+      })
+      this.setDisc(item)
+    },
     _getRecommend() {
       getRecommend().then((res) => {
         if (res.code === ERR_OK) {

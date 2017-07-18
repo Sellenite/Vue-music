@@ -63,6 +63,9 @@ export default {
     }
   },
   methods: {
+    refresh() {
+      this.$refs.listview.refresh()
+    },
     onShortcutTouchStart(e) {
       let anchorIndex = parseInt(dom.toggleData(e.target, 'index'))
       // 边界处理，和点击到0的情况

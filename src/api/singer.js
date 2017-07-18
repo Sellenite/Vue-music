@@ -1,4 +1,5 @@
 import jsonp from 'common/js/jsonp'
+import jsonp2 from 'common/js/jsonp2'
 import { commonParams, options } from './config'
 /*import axios from 'axios'*/
 
@@ -35,5 +36,23 @@ export function getSingerDetail(singerID) {
         songstatus: 1
     })
 
-    return jsonp(url, data, options)
+    return new Promise((resolve, reject) => {
+        jsonp2({
+            url: url,
+            callbackKey: options.param,
+            callbackValue: 'GetSingerListCallback',
+            data: data,
+            time: 10000,
+            success: function (response) {
+                if (response) {
+                    resolve(response)
+                } else {
+                    reject()
+                }
+            },
+            fail: function (error) {
+                console.log(error)
+            }
+        })
+    })
 }

@@ -10,6 +10,7 @@ function findIndex(list, song) {
 
 export const selectPlay = function ({ commit, state }, { list, index }) {
     commit(types.SET_SEQUENCE_LIST, list)
+    // 如果是随机播放全部，那么需要先找到对应的index，然后再传入随机列表中
     if (state.mode === playMode.random) {
         let randomList = shuffle(list)
         commit(types.SET_PLAY_LIST, randomList)

@@ -16,7 +16,7 @@
     <div class="bg-layer" ref="layer"></div>
     <Scroll :data="songs" class="list" ref="list" :probe-type="probeType" :listen-scroll="listenScroll" @scrollActive="scroll">
       <div class="song-list-wrapper">
-        <SongList :songs="songs" @selectItem="selectItem"></SongList>
+        <SongList :songs="songs" @selectItem="selectItem" :rank="rank"></SongList>
       </div>
       <div class="loading-container" v-show="!songs.length">
         <Loading></Loading>
@@ -32,13 +32,16 @@ import Loading from 'base/loading/loading'
 // 使用了低配autoprefixer
 import dom from 'common/js/dom'
 import { mapActions } from 'vuex'
+import { playListMixin } from 'common/js/mixin'
 
 const RESERVED_HEIGHT = 40
 const transform = dom.prefixStyle('transform')
 const backdrop = dom.prefixStyle('backdrop-filter')
-const filter = dom.prefixStyle('filter')
 
 export default {
+  mixins: [
+    playListMixin
+  ],
   props: {
     bgImage: {
       type: String,
@@ -48,8 +51,14 @@ export default {
       type: Array,
       default: []
     },
-    title: String,
-    default: ''
+    title: {
+      type: String,
+      default: ''
+    },
+    rank: {
+      type: Boolean,
+      default: false
+    }
   },
   computed: {
     bgStyle() {
@@ -72,6 +81,13 @@ export default {
     }
   },
   methods: {
+    // mixin方案
+    handlePlayList(playList) {
+      // 从mixin里传过来的watch的newVal值
+      const bottom = playList.length > 0 ? '60px' : ''
+      this.$refs.list.$el.style.bottom = bottom
+      this.$refs.list.refresh()
+    },
     scroll(pos) {
       this.scrollY = pos.y
     },
@@ -110,12 +126,11 @@ export default {
         zIndex = 10
         this.$refs.bgImage.style[transform] = `scale(${scale})`
       } else {
-        // 恢复正常大小和模糊处理
+        // 恢复正常大小
         scale = 1
         this.$refs.bgImage.style[transform] = `scale(${scale})`
         blur = Math.min(20 * percent, 20)
         this.$refs.filter.style[backdrop] = `blur(${blur}px)`
-        this.$refs.bgImage.style[filter] = `blur(${blur}px)`
       }
       // 到达顶部时
       if (newY < this.minTranslateY) {
