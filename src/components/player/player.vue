@@ -83,7 +83,7 @@
       </div>
     </transition>
     <Playlist ref="playlist"></Playlist>
-    <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
+    <audio :src="currentSong.url" ref="audio" @play="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
@@ -155,8 +155,9 @@ export default {
         this.currentLyric.stop()
       }
       let audio = this.$refs.audio
+      clearTimeout(this.timer)
       // 防止微信前后台切换的时候js不运行
-      setTimeout(() => {
+      this.timer = setTimeout(() => {
         audio.play()
         this._getLyric()
       }, 1000)
@@ -178,6 +179,9 @@ export default {
     ]),
     _getLyric() {
       this.currentSong.getLyric().then((lyric) => {
+        if (this.currentSong.lyric !== lyric) {
+          return
+        }
         this.currentLyric = new Lyric(lyric, this._handleLyric)
         if (this.playing) {
           this.currentLyric.play()
@@ -235,6 +239,7 @@ export default {
       // 处理一个歌手只有一首歌的边界情况
       if (this.playList.length === 1) {
         this.loop()
+        this.setPlayingState(true)
       } else {
         let index = this.currentIndex + 1
         if (index === this.playList.length) {
@@ -306,8 +311,11 @@ export default {
     // 播放器中间滑动部分
     middleTouchStart(e) {
       this.touch.init = true
-      this.touch.startX = e.touches[0].pageX
-      this.touch.startY = e.touches[0].pageY
+      // 用来判断是否是一次移动
+      this.touch.moved = false
+      const touch = e.touches[0]
+      this.touch.startX = touch.pageX
+      this.touch.startY = touch.pageY
     },
     middleTouchMove(e) {
       if (!this.touch.init) {
@@ -319,6 +327,9 @@ export default {
       if (Math.abs(deltaY) > Math.abs(deltaX)) {
         return
       }
+      if (!this.touch.moved) {
+        this.touch.moved = true
+      }
       const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
       const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
       this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
@@ -328,6 +339,9 @@ export default {
       this.$refs.middleL.style[transitionDuration] = 0
     },
     middleTouchEnd(e) {
+      if (!this.touch.moved) {
+        return
+      }
       let offsetWidth
       let opacity
       // 左滑到歌词
@@ -356,6 +370,7 @@ export default {
       this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
       this.$refs.middleL.style.opacity = opacity
       this.$refs.middleL.style[transitionDuration] = `${time}ms`
+      this.touch.init = false
     },
     // 播放器进入离开动画
     enter(el, done) {
@@ -484,12 +499,17 @@ export default {
           width: 100%
           height: 0
           padding-top: 80%
+          @media screen and (max-height: 550px)
+            padding-top: 70%
           .cd-wrapper
             position: absolute
             left: 10%
             top: 0
             width: 80%
             height: 100%
+            @media screen and (max-height: 550px)
+              width: 70%
+              left: 15%
             .cd
               width: 100%
               height: 100%
@@ -512,6 +532,8 @@ export default {
             margin: 30px auto 0 auto
             overflow: hidden
             text-align: center
+            @media screen and (max-height: 550px)
+              margin: 15px auto 0 auto
             .playing-lyric
               height: 20px
               line-height: 20px
