@@ -10,13 +10,13 @@ const Recommend = (resolve) => {
 }
 
 const Singer = (resolve) => {
-  import('components/rank/rank').then((rank) => {
+  import('components/singer/singer').then((rank) => {
     resolve(rank)
   })
 }
 
 const Rank = (resolve) => {
-  import('components/singer/singer').then((singer) => {
+  import('components/rank/rank').then((singer) => {
     resolve(singer)
   })
 }
