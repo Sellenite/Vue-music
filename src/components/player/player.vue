@@ -57,7 +57,7 @@
               <i class="icon-next" @click="next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-not-favorite"></i>
+              <i class="icon" :class="getFavoriteIcon(currentSong)" @click="toggleFavorite(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -77,31 +77,36 @@
             <i :class="miniIcon" class="icon-mini"></i>
           </progressCircle>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <Playlist ref="playlist"></Playlist>
     <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 // 使用了插件控制keyframe，不然需要用cssRule
 import keyframe from 'create-keyframe-animation'
 import dom from 'common/js/dom'
 import ProgressBar from 'base/progress-bar/progress-bar'
 import progressCircle from 'base/progress-circle/progress-circle'
-import { playMode } from 'common/js/config'
-import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
+import Playlist from 'components/playlist/playlist'
+import { playerMixin } from 'common/js/mixin'
+import { playMode } from 'common/js/config'
 
 const transform = dom.prefixStyle('transform')
 const transitionDuration = dom.prefixStyle('transitionDuration')
 
 export default {
+  mixins: [
+    playerMixin
+  ],
   data() {
     return {
       songReady: false,
@@ -119,21 +124,14 @@ export default {
   computed: {
     ...mapGetters([
       'fullScreen',
-      'playList',
-      'currentSong',
       'playing',
-      'currentIndex',
-      'mode',
-      'sequenceList'
+      'currentIndex'
     ]),
     normalIcon() {
       return this.playing ? 'icon-pause' : 'icon-play'
     },
     miniIcon() {
       return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
-    },
-    iconMode() {
-      return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
     },
     disable() {
       return this.songReady ? '' : 'disable'
@@ -147,6 +145,9 @@ export default {
   },
   watch: {
     currentSong(newSong, oldSong) {
+      if (!newSong.id) {
+        return
+      }
       if (newSong.id === oldSong.id) {
         return
       }
@@ -170,11 +171,11 @@ export default {
   methods: {
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE',
-      setPlayList: 'SET_PLAY_LIST'
+      setPlayingState: 'SET_PLAYING_STATE'
     }),
+    ...mapActions([
+      'savePlayHistory'
+    ]),
     _getLyric() {
       this.currentSong.getLyric().then((lyric) => {
         this.currentLyric = new Lyric(lyric, this._handleLyric)
@@ -206,6 +207,7 @@ export default {
     },
     ready() {
       this.songReady = true
+      this.savePlayHistory(this.currentSong)
     },
     error() {
       this.songReady = true
@@ -225,24 +227,6 @@ export default {
       if (this.currentLyric) {
         this.currentLyric.togglePlay()
       }
-    },
-    changeMode() {
-      const mode = (this.mode + 1) % 3
-      this.setPlayMode(mode)
-      let list = null
-      if (mode === playMode.random) {
-        list = shuffle(this.sequenceList)
-      } else {
-        list = this.sequenceList
-      }
-      this._resetCurrentIndex(list)
-      this.setPlayList(list)
-    },
-    _resetCurrentIndex(list) {
-      let index = list.findIndex((item) => {
-        return item.id === this.currentSong.id
-      })
-      this.setCurrentIndex(index)
     },
     next() {
       if (!this.songReady) {
@@ -315,6 +299,9 @@ export default {
         len++
       }
       return num
+    },
+    showPlaylist() {
+      this.$refs.playlist.show()
     },
     // 播放器中间滑动部分
     middleTouchStart(e) {
@@ -428,7 +415,8 @@ export default {
   components: {
     ProgressBar,
     progressCircle,
-    Scroll
+    Scroll,
+    Playlist
   }
 }
 </script>

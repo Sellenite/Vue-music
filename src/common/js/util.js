@@ -1,3 +1,4 @@
+// 打乱数组顺序
 export function shuffle(arr) {
     // 0到i之间取一个数，然后和arr[i]做交换，洗牌就会洗得很乱
     // 副本
@@ -14,4 +15,17 @@ export function shuffle(arr) {
 function getRandomInt(min, max) {
     // 随机返回max和min之间的数，并且包括max和min
     return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+// 函数去抖
+export function debounce(fn, delay) {
+    let timer
+    return function (...args) {
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+            fn.apply(this, args)
+        }, delay)
+    }
 }

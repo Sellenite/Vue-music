@@ -24,6 +24,18 @@ export default {
     listenScroll: {
       type: Boolean,
       default: false
+    },
+    pullup: {
+      type: Boolean,
+      default: false
+    },
+    beforeScroll: {
+      type: Boolean,
+      default: false
+    },
+    refreshDelay: {
+      type: Number,
+      default: 20
     }
   },
   mounted() {
@@ -45,6 +57,20 @@ export default {
         let self = this
         this.scroll.on('scroll', (pos) => {
           self.$emit('scrollActive', pos)
+        })
+      }
+
+      if (this.pullup) {
+        this.scroll.on('scrollEnd', () => {
+          if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+            this.$emit('scrollToEnd')
+          }
+        })
+      }
+
+      if (this.beforeScroll) {
+        this.scroll.on('beforeScrollStart', () => {
+          this.$emit('beforeScroll')
         })
       }
     },
@@ -70,7 +96,8 @@ export default {
     data() {
       setTimeout(() => {
         this.refresh()
-      }, 20)
+        // 修复Scroll组件包裹transition-group后的计算不正确bug（playlist组件）
+      }, this.refreshDelay)
     }
   }
 }
